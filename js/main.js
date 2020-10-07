@@ -1,48 +1,77 @@
-function relogio(){
-function criaHoraDosSegundos(segundos) {
-    const data = new Date(segundos *1000);
-    return data.toLocaleTimeString('pt-BR',{
-    hour12:false,
-    timeZone:'UTC'
-    });
+const inputTarefa = document.querySelector('.input-tarefa');
+const btnTarefa = document.querySelector('.btn-tarefas');
+const tarefas = document.querySelector('.tarefas');
+
+function criaLi() {
+  const li = document.createElement('li');
+  return li;
 }
 
-//console.log(criaHoraDosSegundos(10));
+inputTarefa.addEventListener('keypress', function(e) {
+  if (e.keyCode === 13) {
+    if (!inputTarefa.value) return;
+    criaTarefa(inputTarefa.value);
+  }
+});
 
-const relogio = document.querySelector('.relogio');
-let segundos = 0;
-let timer;
-
-function iniciaRelogio() {
-     timer = setInterval(function(){
-        segundos++;
-        relogio.innerHTML= criaHoraDosSegundos(segundos);
-    },1000);
+function limpaInput() {
+  inputTarefa.value = '';
+  inputTarefa.focus();
 }
 
- document.addEventListener('click',function(e){
-     const el =e.target;
-
-     if (el.classList.contains('zerar')){
-        relogio.classList.remove('pausado');
-         clearInterval(timer);
-         relogio.innerHTML = '00:00:00';
-        segundos = 0;
-
-     }
-     if (el.classList.contains('iniciar')){
-        relogio.classList.remove('pausado');
-        clearInterval(timer);
-        iniciaRelogio();
-
-     }
-
-     if (el.classList.contains('pausar')){
-        clearInterval(timer);
-        relogio.classList.add('pausado');
-     }
-
- });
+function criaBotaoApagar(li) {
+  li.innerText += ' ';
+  const botaoApagar = document.createElement('button');
+  botaoApagar.innerText = 'Apagar';
+  // botaoApagar.classList.add('apagar');
+  botaoApagar.setAttribute('class', 'apagar');
+  botaoApagar.setAttribute('title', 'Apagar esta tarefa');
+  li.appendChild(botaoApagar);
 }
-relogio();
-    
+
+function criaTarefa(textoInput) {
+  const li = criaLi();
+  li.innerText = textoInput;
+  tarefas.appendChild(li);
+  limpaInput();
+  criaBotaoApagar(li);
+  salvarTarefas();
+}
+
+btnTarefa.addEventListener('click', function() {
+  if (!inputTarefa.value) return;
+  criaTarefa(inputTarefa.value);
+});
+
+document.addEventListener('click', function(e) {
+  const el = e.target;
+
+  if (el.classList.contains('apagar')) {
+    el.parentElement.remove();
+    salvarTarefas();
+  }
+});
+
+function salvarTarefas() {
+  const liTarefas = tarefas.querySelectorAll('li');
+  const listaDeTarefas = [];
+
+  for (let tarefa of liTarefas) {
+    let tarefaTexto = tarefa.innerText;
+    tarefaTexto = tarefaTexto.replace('Apagar', '').trim();
+    listaDeTarefas.push(tarefaTexto);
+  }
+
+  const tarefasJSON = JSON.stringify(listaDeTarefas);
+  localStorage.setItem('tarefas', tarefasJSON);
+}
+
+function adicionaTarefasSalvas() {
+  const tarefas = localStorage.getItem('tarefas');
+  const listaDeTarefas = JSON.parse(tarefas);
+
+  for(let tarefa of listaDeTarefas) {
+    criaTarefa(tarefa);
+  }
+}
+adicionaTarefasSalvas();
